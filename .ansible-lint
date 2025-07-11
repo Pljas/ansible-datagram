@@ -1,0 +1,26 @@
+---
+kinds:
+  - yaml: "**/meta/main.yml"
+  - playbook: "**/playbooks/*.yml"
+  - tasks: "**/tasks/*.yml"
+  - vars: "**/vars/*.yml"
+  - meta: "**/meta/*.yml"
+
+skip_list:
+  - yaml[line-length]
+  - name[casing]
+  - risky-file-permissions
+  - yaml[comments]
+
+enable_list:
+  - no-changed-when
+  - no-handler
+  - no-jinja-when
+  - no-tabs
+
+exclude_paths:
+  - .cache/
+  - .git/
+  - .github/
+
+use_default_rules: true

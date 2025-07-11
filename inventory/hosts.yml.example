@@ -1,0 +1,16 @@
+all:
+  children:
+    datagram_servers:
+      hosts:
+        server1:
+          ansible_host: 192.168.1.10
+          ansible_port: 22
+          ansible_user: root
+          ansible_ssh_private_key_file: "~/.ssh/id_ed25519"
+          datagram_license_key: "your-license-key-here"
+        # server2:
+        #   ansible_host: 192.168.1.11
+        #   ansible_port: 2222
+        #   ansible_user: root
+        #   ansible_ssh_private_key_file: "~/.ssh/id_ed25519"
+        #   datagram_license_key: "your-license-key-here"

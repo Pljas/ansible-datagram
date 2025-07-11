@@ -1,0 +1,52 @@
+- name: Check datagram user
+  ansible.builtin.command: getent passwd {{ datagram_user }}
+  register: user_check
+  changed_when: false
+  failed_when: false
+
+- name: Display user info
+  ansible.builtin.debug:
+    msg: "User '{{ datagram_user }}': {% if user_check.rc == 0 %}✅ Exists{% else %}❌ Not Found{% endif %}"
+
+- name: Check home directory
+  ansible.builtin.stat:
+    path: "{{ datagram_home }}"
+  register: home_check
+
+- name: Display home directory status
+  ansible.builtin.debug:
+    msg: "Home directory '{{ datagram_home }}': {% if home_check.stat.exists and home_check.stat.isdir -%} ✅ Exists{%- else -%} ❌ Not Found{%- endif %}"
+
+- name: Check if datagram service file exists
+  ansible.builtin.stat:
+    path: /etc/systemd/system/{{ datagram_service_name }}.service
+  register: service_file_check
+
+- name: Display service file status
+  ansible.builtin.debug:
+    msg: "Service file '/etc/systemd/system/{{ datagram_service_name }}.service': {% if service_file_check.stat.exists %}✅ Exists{% else %}❌ Not Found{% endif %}"
+
+- name: Check service status and logs
+  when: service_file_check.stat.exists
+  block:
+    - name: Check if datagram service is running
+      ansible.builtin.systemd:
+        name: "{{ datagram_service_name }}"
+      register: datagram_status
+
+    - name: Display service status
+      ansible.builtin.debug:
+        msg: |
+          Service 'datagram':
+            Active: {{ datagram_status.status.ActiveState == 'active' | ternary('✅ Yes', '❌ No') }}
+            State: {{ datagram_status.status.SubState }}
+            PID: {{ datagram_status.status.MainPID | default('N/A') }}
+
+    - name: Get recent logs
+      ansible.builtin.command: journalctl -u datagram --no-pager -n 5
+      register: recent_logs
+      changed_when: false
+
+    - name: Display recent logs
+      ansible.builtin.debug:
+        msg: "Recent logs: {{ recent_logs.stdout_lines }}"

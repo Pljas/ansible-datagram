@@ -1,0 +1,28 @@
+---
+- name: Stop and disable Datagram service
+  ansible.builtin.systemd:
+    name: "{{ datagram_service_name }}"
+    enabled: false
+    state: stopped
+  register: stop_service
+  failed_when:
+    - stop_service.failed
+    - "'Could not find the requested service' not in stop_service.msg"
+
+- name: Remove Datagram CLI binary
+  ansible.builtin.file:
+    path: /usr/local/bin/datagram-cli
+    state: absent
+
+- name: Remove systemd service file
+  ansible.builtin.file:
+    path: /etc/systemd/system/datagram.service
+    state: absent
+  notify: reload systemd
+
+- name: Remove datagram user and home directory
+  ansible.builtin.user:
+    name: "{{ datagram_user }}"
+    state: absent
+    remove: true
+    force: true

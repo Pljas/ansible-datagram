@@ -1,0 +1,40 @@
+---
+galaxy_info:
+  role_name: datagram
+  namespace: datagram_group
+  author: Cabinet42
+  description: Ansible role for installing and managing Datagram CLI with advanced features
+  company: Datagram Group
+  license: MIT
+  min_ansible_version: "2.12"
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+    - name: Fedora
+      versions:
+        - "38"
+        - "39"
+        - "40"
+  galaxy_tags:
+    - datagram
+    - cli
+    - blockchain
+    - network
+    - monitoring
+    - systemd
+    - service
+    - security
+
+dependencies: []

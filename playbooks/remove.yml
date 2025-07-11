@@ -1,0 +1,10 @@
+---
+- name: Remove Datagram CLI
+  hosts: datagram_servers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Remove Datagram
+      ansible.builtin.include_role:
+        name: datagram
+        tasks_from: remove

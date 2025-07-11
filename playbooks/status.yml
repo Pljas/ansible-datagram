@@ -1,0 +1,10 @@
+---
+- name: Check Datagram CLI Status
+  hosts: datagram_servers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Check Datagram Status
+      ansible.builtin.include_role:
+        name: datagram
+        tasks_from: status

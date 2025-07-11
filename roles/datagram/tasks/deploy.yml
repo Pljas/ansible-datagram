@@ -1,0 +1,93 @@
+---
+- name: Update package cache (Debian/Ubuntu)
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: ansible_os_family == 'Debian'
+
+- name: Create datagram system user
+  ansible.builtin.user:
+    name: "{{ datagram_user }}"
+    system: true
+    shell: /bin/false
+    home: "{{ datagram_home }}"
+    create_home: true
+    state: present
+
+- name: Set proper permissions on datagram home directory
+  ansible.builtin.file:
+    path: "{{ datagram_home }}"
+    owner: "{{ datagram_user }}"
+    group: "{{ datagram_user }}"
+    mode: '0755'
+    state: directory
+
+- name: Create tmp directory for datagram user
+  ansible.builtin.file:
+    path: "{{ datagram_home }}/tmp"
+    owner: "{{ datagram_user }}"
+    group: "{{ datagram_group }}"
+    mode: '0700'
+    state: directory
+
+- name: Get installed Datagram CLI version
+  ansible.builtin.command:
+    cmd: "{{ datagram_install_path }} --help"
+  register: installed_datagram_version
+  changed_when: false
+  failed_when: false
+
+- name: Get latest Datagram CLI version from GitHub
+  ansible.builtin.uri:
+    url: "{{ datagram_base_url }}/latest"
+    method: HEAD
+  register: github_release_info
+
+- name: Extract latest version from redirect URL
+  ansible.builtin.set_fact:
+    latest_datagram_version: "{{ github_release_info.url.split('/')[-1] }}"
+  when: github_release_info.url is defined
+
+- name: Download Datagram CLI binary if needed
+  ansible.builtin.get_url:
+    url: "{{ datagram_base_url }}/download/{{ latest_datagram_version }}/{{ datagram_binary_name }}"
+    dest: "{{ datagram_install_path }}"
+    mode: '0755'
+    owner: "{{ datagram_user }}"
+    group: "{{ datagram_group }}"
+    force: true
+    backup: true
+    timeout: 30
+  when: >
+    installed_datagram_version.rc != 0 or
+    (latest_datagram_version is defined and latest_datagram_version | replace('v', '') not in installed_datagram_version.stdout)
+  register: datagram_download
+  retries: 3
+  delay: 5
+  until: datagram_download is succeeded
+  notify: restart datagram
+
+- name: Verify Datagram CLI binary
+  ansible.builtin.command:
+    cmd: "{{ datagram_install_path }} --help"
+  register: datagram_verify
+  failed_when: datagram_verify.rc != 0 or 'App version:' not in datagram_verify.stdout
+  changed_when: false
+
+- name: Create systemd service file
+  ansible.builtin.template:
+    src: datagram.service.j2
+    dest: /etc/systemd/system/datagram.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - reload systemd
+    - restart datagram
+
+- name: Enable and start Datagram service
+  ansible.builtin.systemd:
+    name: datagram
+    enabled: true
+    state: started
+    daemon_reload: true

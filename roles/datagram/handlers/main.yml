@@ -1,0 +1,43 @@
+---
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: restart datagram
+  ansible.builtin.systemd:
+    name: "{{ datagram_service_name }}"
+    state: restarted
+    daemon_reload: true
+  when: datagram_service_enabled
+
+- name: reload datagram
+  ansible.builtin.systemd:
+    name: "{{ datagram_service_name }}"
+    state: reloaded
+  when: datagram_service_enabled
+
+- name: start datagram
+  ansible.builtin.systemd:
+    name: "{{ datagram_service_name }}"
+    state: started
+    enabled: "{{ datagram_service_enabled }}"
+
+- name: stop datagram
+  ansible.builtin.systemd:
+    name: "{{ datagram_service_name }}"
+    state: stopped
+
+- name: validate datagram config
+  ansible.builtin.command:
+    cmd: "{{ datagram_install_path }} --help"
+  register: datagram_config_check
+  failed_when: datagram_config_check.rc != 0
+  changed_when: false
+
+- name: backup datagram config
+  ansible.builtin.copy:
+    src: "{{ datagram_config_dir }}/"
+    dest: "{{ datagram_config_dir }}/backup-{{ ansible_date_time.epoch }}/"
+    remote_src: true
+    backup: true
+  when: datagram_backup_config and datagram_config_dir is defined

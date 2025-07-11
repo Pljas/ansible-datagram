@@ -1,0 +1,20 @@
+---
+# Datagram CLI configuration
+datagram_architecture: "x86_64-linux"
+datagram_base_url: "https://github.com/Datagram-Group/datagram-cli-release/releases"
+datagram_binary_name: "datagram-cli-{{ datagram_architecture }}"
+datagram_install_path: "/usr/local/bin/datagram-cli"
+
+# Service configuration
+datagram_service_name: "datagram"
+datagram_service_enabled: true
+
+# User and permissions
+datagram_user: "datagram"
+datagram_group: "datagram"
+datagram_home: "/home/{{ datagram_user }}"
+datagram_binary_mode: "0755"
+
+# Security
+datagram_verify_checksum: true
+datagram_allow_downgrades: false

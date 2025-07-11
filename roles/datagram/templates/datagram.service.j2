@@ -1,0 +1,32 @@
+[Unit]
+Description=Datagram CLI Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=datagram
+Group=datagram
+WorkingDirectory=/home/datagram
+Environment=HOME=/home/datagram
+Environment=TMPDIR=/home/datagram/tmp
+ExecStart=/usr/local/bin/datagram-cli run -- -key {{ datagram_license_key }}
+Restart=always
+RestartSec=10
+KillMode=control-group
+TimeoutStopSec=30
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=datagram-cli
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=false
+ReadWritePaths=/home/datagram /home/datagram/tmp /tmp
+
+[Install]
+WantedBy=multi-user.target
